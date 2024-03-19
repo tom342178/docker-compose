@@ -23,15 +23,10 @@ newgrp docker
 
 
 ## Prepare Machine
-1. Clone _service-anylog_
+Clone _docker-compose_ from EdgeLake repository
 ```shell
 git clone https://github.com/EdgeLake/docker-compose
 cd docker-compose
-```
-
-2. Log into AnyLog Docker hub 
-```shell
-make login
 ```
 
 ## Deploy AnyLog via Docker 
@@ -110,7 +105,6 @@ If a _node-type_ is not set, then a generic node would automatically be used
 
 
 ## Makefile Commands 
-* `login` - Log into AnyLog's Docker Hub
 * `build` - pull docker image 
 * `up` - Using _docker-compose_, start a container of AnyLog based on node type
 * `attach` - Attach to an AnyLog docker container based on node type

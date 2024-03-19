@@ -37,8 +37,6 @@ export DATA_VOLUME := anylog-$(ANYLOG_TYPE)-data
 export LOCAL_SCRIPTS := anylog-$(ANYLOG_TYPE)-local-scripts
 
 all: help
-login:
-	docker login -u anyloguser -p dckr_pat_zcjxcPOKvHkOZMuLY6UOuCs5jUc
 build:
 	docker pull anylogco/anylog-network:edgelake
 up:
