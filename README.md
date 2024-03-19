@@ -29,7 +29,7 @@ git clone https://github.com/EdgeLake/docker-compose
 cd docker-compose
 ```
 
-## Deploy AnyLog via Docker 
+## Deploy EdgeLake via Docker 
 1. Update `.env` configurations for the node(s) being deployed 
    * [master node](docker_makefile/anylog_master.env)
    * [operator node](docker_makefile/anylog_operator.env)

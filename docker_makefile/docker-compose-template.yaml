@@ -5,8 +5,6 @@ services:
     restart: always
     env_file:
       - anylog_${ANYLOG_TYPE}.env
-    environment:
-      - INIT_TYPE=prod
     container_name: anylog-${ANYLOG_TYPE}
     stdin_open: true
     tty: true
