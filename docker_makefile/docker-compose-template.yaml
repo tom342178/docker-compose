@@ -1,21 +1,21 @@
 version: "3"
 services:
-  anylog-${ANYLOG_TYPE}:
+  edgelake-${EDGELAKE_TYPE}:
     image: anylogco/edgelake:latest
     restart: always
     env_file:
-      - anylog_${ANYLOG_TYPE}.env
-    container_name: anylog-${ANYLOG_TYPE}
+      - edgelake_${EDGELAKE_TYPE}.env
+    container_name: edgelake-${EDGELAKE_TYPE}
     stdin_open: true
     tty: true
     network_mode: host
     volumes:
-      - anylog-${ANYLOG_TYPE}-anylog:/app/AnyLog-Network/anylog
-      - anylog-${ANYLOG_TYPE}-blockchain:/app/AnyLog-Network/blockchain
-      - anylog-${ANYLOG_TYPE}-data:/app/AnyLog-Network/data
-      - anylog-${ANYLOG_TYPE}-local-scripts:/app/deployment-scripts
+      - edgelake-${EDGELAKE_TYPE}-anylog:/app/AnyLog-Network/anylog
+      - edgelake-${EDGELAKE_TYPE}-blockchain:/app/AnyLog-Network/blockchain
+      - edgelake-${EDGELAKE_TYPE}-data:/app/AnyLog-Network/data
+      - edgelake-${EDGELAKE_TYPE}-local-scripts:/app/deployment-scripts
 volumes:
-  anylog-${ANYLOG_TYPE}-anylog:
-  anylog-${ANYLOG_TYPE}-blockchain:
-  anylog-${ANYLOG_TYPE}-data:
-  anylog-${ANYLOG_TYPE}-local-scripts:
+  edgelake-${EDGELAKE_TYPE}-anylog:
+  edgelake-${EDGELAKE_TYPE}-blockchain:
+  edgelake-${EDGELAKE_TYPE}-data:
+  edgelake-${EDGELAKE_TYPE}-local-scripts:

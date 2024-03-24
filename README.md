@@ -1,9 +1,8 @@
-# Deploying AnyLog 
+# Deploying EdgeLake
 
-The following provides direction to deploy AnyLog using [_makefile_](Makefile) for Docker-based deployment.
+The following provides direction to deploy EdgeLake using [_makefile_](Makefile) for Docker-based deployment.
 
 * [EdgeLake Source Code](https://github.com/EdgeLake/EdgeLake)
-* [Docker installation of AnyLog](https://github.com/AnyLog-co/documentation/tree/master/training)
 
 **Requirements**
 * _Docker_
@@ -20,7 +19,6 @@ sudo groupadd docker
 sudo usermod -aG docker ${USER} 
 newgrp docker
 ```
-
 
 ## Prepare Machine
 Clone _docker-compose_ from EdgeLake repository
@@ -75,13 +73,13 @@ Usage: make [target] [anylog-type]
 Targets:
   build       Pull the docker image
   up          Start the containers
-  attach      Attach to AnyLog instance
+  attach      Attach to EdgeLake instance
   exec        Attach to shell interface for container
   down        Stop and remove the containers
   logs        View logs of the containers
   clean       Clean up volumes and network
   help        Show this help message
-         supported AnyLog types: master, operator and query
+         supported EdgeLake types: master, operator and query
 Sample calls: make up master | make attach master | make clean master
 ```
 
