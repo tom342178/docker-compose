@@ -23,7 +23,6 @@ clean:
 	@rm -rf docker_makefile/docker-compose.yaml
 attach:
 	docker attach --detach-keys=ctrl-d edgelake-$(EDGELAKE_TYPE)
-test: node-status test-node test-network
 node-status:
 	@if [ "$(EDGELAKE_TYPE)" = "master" ]; then \
 		curl -X GET 127.0.0.1:32049 -H "command: get status" -H "User-Agent: AnyLog/1.23" -w "\n"; \
