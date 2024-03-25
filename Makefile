@@ -22,10 +22,10 @@ clean:
 	@docker-compose -f docker_makefile/docker-compose.yaml down -v --remove-orphans --rmi all
 	@rm -rf docker_makefile/docker-compose.yaml
 attach:
-	docker attach --detach-keys=ctrl-d anylog-$(EDGELAKE_TYPE)
+	docker attach --detach-keys=ctrl-d edgelake-$(EDGELAKE_TYPE)
 test:
 	@if [ "$(EDGELAKE_TYPE)" = "master" ]; then \
-		curl -X GET 127.0.0.1:32049 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
+		curl -X GET 127.0.0.1:32049 -H "command: test node" -H "User-Agent: AnyLog/1.23";
 	elif [ "$(EDGELAKE_TYPE)" = "operator" ]; then \
 		curl -X GET 127.0.0.1:32149 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
 	elif [ "$(EDGELAKE_TYPE)" = "query" ]; then \
@@ -34,11 +34,11 @@ test:
 	  curl -X GET 127.0.0.1:32549 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
 	fi
 exec:
-	docker exec -it anylog-$(EDGELAKE_TYPE)
+	docker exec -it edgelake-$(EDGELAKE_TYPE)
 logs:
-	docker logs anylog-$(EDGELAKE_TYPE)
+	docker logs edgelake-$(EDGELAKE_TYPE)
 help:
-	@echo "Usage: make [target] [anylog-type]"
+	@echo "Usage: make [target] [edgelake-type]"
 	@echo "Targets:"
 	@echo "  build       Pull the docker image"
 	@echo "  up          Start the containers"
