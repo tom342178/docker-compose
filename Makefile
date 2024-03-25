@@ -25,13 +25,13 @@ attach:
 	docker attach --detach-keys=ctrl-d edgelake-$(EDGELAKE_TYPE)
 test:
 	@if [ "$(EDGELAKE_TYPE)" = "master" ]; then \
-		curl -X GET 127.0.0.1:32049 -H "command: test node" -H "User-Agent: AnyLog/1.23";
+		curl -X GET 127.0.0.1:32049 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
 	elif [ "$(EDGELAKE_TYPE)" = "operator" ]; then \
 		curl -X GET 127.0.0.1:32149 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
 	elif [ "$(EDGELAKE_TYPE)" = "query" ]; then \
 		curl -X GET 127.0.0.1:32349 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
-	elif [ "$(NODE_TYPE)" == "generic" ]; then
-	  curl -X GET 127.0.0.1:32549 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
+	elif [ "$(NODE_TYPE)" == "generic" ]; then \
+		curl -X GET 127.0.0.1:32549 -H "command: test node" -H "User-Agent: AnyLog/1.23"; \
 	fi
 exec:
 	docker exec -it edgelake-$(EDGELAKE_TYPE)
