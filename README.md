@@ -29,9 +29,9 @@ cd docker-compose
 
 ## Deploy EdgeLake via Docker 
 1. Update `.env` configurations for the node(s) being deployed 
-   * [master node](docker_makefile/anylog_master.env)
-   * [operator node](docker_makefile/anylog_operator.env)
-   * [query node](docker_makefile/anylog_query.env)
+   * [docker_makefile/anylog_master.env](docker_makefile/anylog_master.env)
+   * [docker_makefile/anylog_operator.env](docker_makefile/anylog_operator.env)
+   * [docker_makefile/anylog_qauery.env](docker_makefile/anylog_query.env)
 
 ```dotenv
 #--- General ---
