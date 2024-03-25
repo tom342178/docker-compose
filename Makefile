@@ -54,7 +54,7 @@ test-network:
 		curl -X GET 127.0.0.1:32549 -H "command: test network" -H "User-Agent: AnyLog/1.23" -w "\n"; \
 	fi
 exec:
-	docker exec -it edgelake-$(EDGELAKE_TYPE)
+	docker exec -it edgelake-$(EDGELAKE_TYPE) bash
 logs:
 	docker logs edgelake-$(EDGELAKE_TYPE)
 help:
