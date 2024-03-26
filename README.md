@@ -70,7 +70,7 @@ make up EDGELAKE_TYPE=[NODE_TYPE]
 ### Makefile Commands for Docker
 * help
 ```shell
-Usage: make [target] [anylog-type]
+Usage: make [target] EDGELAKE_TYPE=[anylog-type]
 Targets:
   build       Pull the docker image
   up          Start the containers
