@@ -1,7 +1,7 @@
 version: "3"
 services:
   edgelake-${EDGELAKE_TYPE}:
-    image: anylogco/edgelake:latest
+    image: anylogco/edgelake:${TAG}
     restart: always
     env_file:
       - edgelake_${EDGELAKE_TYPE}.env

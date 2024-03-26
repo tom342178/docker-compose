@@ -5,6 +5,11 @@ ifneq ($(filter-out $@,$(MAKECMDGOALS)), )
 	EDGELAKE_TYPE = $(filter-out $@,$(MAKECMDGOALS))
 endif
 
+TAG := latest
+ifeq ($(shell uname -m), arm64)
+	TAG := latest-arm64
+endif
+
 all: help
 build:
 	docker pull anylogco/edgelake:latest
