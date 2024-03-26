@@ -30,9 +30,9 @@ cd docker-compose
 ## Deploy EdgeLake via Docker 
 1. Edit LEDGER_CONN in query and operator using IP address of master node
 2. Update `.env` configurations for the node(s) being deployed 
-   * [docker_makefile/anylog_master.env](docker_makefile/anylog_master.env)
-   * [docker_makefile/anylog_operator.env](docker_makefile/anylog_operator.env)
-   * [docker_makefile/anylog_qauery.env](docker_makefile/anylog_query.env)
+   * [docker_makefile/edgelake_master.env](docker_makefile/edgelake_master.env)
+   * [docker_makefile/edgelake_operator.env](docker_makefile/edgelake_operator.env)
+   * [docker_makefile/edgelake_qauery.env](docker_makefile/edgelake_query.env)
 
 ```dotenv
 #--- General ---
