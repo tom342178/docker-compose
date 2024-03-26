@@ -28,10 +28,11 @@ cd docker-compose
 ```
 
 ## Deploy EdgeLake via Docker 
-1. Update `.env` configurations for the node(s) being deployed 
-   * [master node](docker_makefile/anylog_master.env)
-   * [operator node](docker_makefile/anylog_operator.env)
-   * [query node](docker_makefile/anylog_query.env)
+1. Edit LEDGER_CONN in query and operator using IP address of master node
+2. Update `.env` configurations for the node(s) being deployed 
+   * [docker_makefile/edgelake_master.env](docker_makefile/edgelake_master.env)
+   * [docker_makefile/edgelake_operator.env](docker_makefile/edgelake_operator.env)
+   * [docker_makefile/edgelake_qauery.env](docker_makefile/edgelake_query.env)
 
 ```dotenv
 #--- General ---
@@ -61,7 +62,7 @@ LEDGER_CONN=127.0.0.1:32048
 DEPLOY_LOCAL_SCRIPT=false
 ```
 
-2. Start Node using _makefile_
+3. Start Node using _makefile_
 ```shell
 make up [NODE_TYPE]
 ```
