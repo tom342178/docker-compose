@@ -5,9 +5,9 @@ ifneq ($(filter-out $@,$(MAKECMDGOALS)), )
 	EDGELAKE_TYPE = $(filter-out $@,$(MAKECMDGOALS))
 endif
 
-TAG := latest
+export TAG := 1.3.2405
 ifeq ($(shell uname -m), arm64)
-	TAG := latest-arm64
+	export TAG := 1.3.2405-arm64
 endif
 
 all: help
@@ -24,7 +24,7 @@ down:
 	@rm -rf docker_makefile/docker-compose.yaml
 clean:
 	EDGELAKE_TYPE=$(EDGELAKE_TYPE) envsubst < docker_makefile/docker-compose-template.yaml > docker_makefile/docker-compose.yaml
-	@docker-compose -f docker_makefile/docker-compose.yaml down -v --remove-orphans --rmi all
+	@docker-compose -f docker_makefile/docker-compose.yaml down -v --rmi all
 	@rm -rf docker_makefile/docker-compose.yaml
 attach:
 	docker attach --detach-keys=ctrl-d edgelake-$(EDGELAKE_TYPE)

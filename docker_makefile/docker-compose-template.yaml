@@ -10,9 +10,9 @@ services:
     tty: true
     network_mode: host
     volumes:
-      - edgelake-${EDGELAKE_TYPE}-anylog:/app/AnyLog-Network/anylog
-      - edgelake-${EDGELAKE_TYPE}-blockchain:/app/AnyLog-Network/blockchain
-      - edgelake-${EDGELAKE_TYPE}-data:/app/AnyLog-Network/data
+      - edgelake-${EDGELAKE_TYPE}-anylog:/app/EdgeLake/anylog
+      - edgelake-${EDGELAKE_TYPE}-blockchain:/app/EdgeLake/blockchain
+      - edgelake-${EDGELAKE_TYPE}-data:/app/EdgeLake/data
       - edgelake-${EDGELAKE_TYPE}-local-scripts:/app/deployment-scripts
 volumes:
   edgelake-${EDGELAKE_TYPE}-anylog:
