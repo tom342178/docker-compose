@@ -49,9 +49,7 @@ configure unique values for the `ANYLOG_SERVER_PORT` and `ANYLOG_REST_PORT` envi
 - If you deploy multiple operators or queries in the network, each must have a distinct `NODE_NAME`. 
 - Clusters are logical object that informs members of the network which operator(s) have a given data set, and when using 
 high-availability, managing the sharing of data across operators (on the same cluster). As such, `CLUSTER_NAME` should be unique 
-**unless** HA is configured. 
-
-- **License Key**: A valid `LICENSE_KEY` must be provided to deploy AnyLog. [Request License Key](https://www.anylog.network/download))
+**unless** HA is configured.
 
 | Node Type | Server Port | REST Port |
 |-----------|-------------|-----------|
@@ -61,12 +59,12 @@ high-availability, managing the sharing of data across operators (on the same cl
 | Generic   | 32548       | 32549     |
 
 
-**Generic Docker Run Command**: The following command will deploy an AnyLog container with the default configurations   
+**Generic Docker Run Command**: The following command will deploy an EdgeLake container with the default configurations   
 ```shell
 docker run -it --network host \
   -e INIT_TYPE=prod \
-  -e NODE_TYPE=[AnyLog Type - generic, master, operator, query] \
---name edgelake-node --rm anylogco/anylog-network:latest
+  -e NODE_TYPE=[EdgeLake Type - generic, master, operator, query] \
+--name edgelake-node --rm anylogco/edgelake:latest
 ```
 
 ## Deployment via Makefile
@@ -77,13 +75,12 @@ manual specification (subset of the configs)  or using the dotenv [configuration
 Usage: make [target] [VARIABLE=value]
 
 Available targets:
-  login                 log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeholder for password
   build                 pull image from the docker hub repository
   dry-run               create docker-compose.yaml file based on the .env configuration file(s)
-  up                    start AnyLog instance
-  down                  Stop AnyLog instance
-  clean-vols            Stop AnyLog instance and remove associated volumes
-  clean                 Stop AnyLog instance and remove associated volumes & image
+  up                    start EdgeLake instance
+  down                  Stop EdgeLake instance
+  clean-vols            Stop EdgeLake instance and remove associated volumes
+  clean                 Stop EdgeLake instance and remove associated volumes & image
   attach                Attach to docker / podman container (use ctrl-d to detach)
   exec                  Attach to the shell executable for the container
   logs                  View container logs
@@ -108,32 +105,27 @@ Common variables you can override:
 The manual configuration-based deployment uses the default configurations, but allows the user to manipulate a subset of 
 said configurations. When using the manual deployment the database layer will be _SQLite_. 
 
-* Generic - An empty AnyLog instance consisting of **only** network configuration services 
+* Generic - An empty EdgeLake instance consisting of **only** network configuration services 
 ```shell
 make up IS_MANUAL=true EDGELAKE_TYPE=generic
 ```
 
-* Master - An AnyLog instance that replaces a real blockchain, acting as an "Oracle" alternative for the network. 
+* Master - An EdgeLake instance that replaces a real blockchain, acting as an "Oracle" alternative for the network. 
 ```shell
 make up IS_MANUAL=true EDGELAKE_TYPE=master ANYLOG_SERVER_PORT=32048 ANYLOG_REST_PORT=32049
 ```
 
-* Operator - An AnyLog instance dedicated to storing data from devices 
+* Operator - An EdgeLake instance dedicated to storing data from devices 
 ```shell
 make up IS_MANUAL=true EDGELAKE_TYPE=operator ANYLOG_SERVER_PORT=32148 ANYLOG_REST_PORT=32149 LEDGER_CONN=104.237.138.113:32048 CLUSTER_NAME=my-cluster1
 ```
 
-* Query - An AnyLog instance dedicated for running queries. Any node can act as a query node as long as they have `system_query` logical database
+* Query - An EdgeLake instance dedicated for running queries. Any node can act as a query node as long as they have `system_query` logical database
 ```shell
 make up IS_MANUAL=true EDGELAKE_TYPE=query ANYLOG_SERVER_PORT=32348 ANYLOG_REST_PORT=32349 LEDGER_CONN=104.237.138.113:32048
 ```
 
-* Publisher - An AnyLog instance that's intended for distributing data among operator nodes.  
-```shell
-make up IS_MANUAL=true EDGELAKE_TYPE=publisher ANYLOG_SERVER_PORT=32248 ANYLOG_REST_PORT=32249 LEDGER_CONN=104.237.138.113:32048
-```
-
-All AnyLog containers run the same source code / image. It is the configurations that define which services to enable. 
+All EdgeLake containers run the same source code / image. It is the configurations that define which services to enable. 
 
 
 ### Configuration-based Deployment
@@ -209,16 +201,16 @@ make up EDGELAKE_TYPE=operator2
 ## Configuration file(s) Breakdown
 Basic configurations details is based on [operator node](docker-makefiles/operator-configs/base_configs.env)
 * General configurations
-```dotenv
+```dotenv-
 #--- General ---
-#--- General ---
-# Information regarding which AnyLog node configurations to enable. By default, even if everything is disabled, AnyLog starts TCP and REST connection protocols
+# Information regarding which EdgeLake node configurations to enable. By default, even if everything is disabled, 
+# EdgeLake starts TCP and REST connection protocols
 NODE_TYPE=operator
-# Name of the AnyLog instance
+# Name of the EdgeLake instance
 NODE_NAME=edgelake-operator1
-# Owner of the AnyLog instance
+# Owner of the EdgeLake instance
 COMPANY_NAME=New Company
-# Disable AnyLog's CLI interface
+# Disable EdgeLake's CLI interface
 DISABLE_CLI=false
 # Enable Remote-CLI
 REMOTE_CLI=true
@@ -227,9 +219,9 @@ REMOTE_CLI=true
 * Networking
 ```dotenv
 #--- Networking ---
-# Port address used by AnyLog's TCP protocol to communicate with other nodes in the network
+# Port address used by EdgeLake's TCP protocol to communicate with other nodes in the network
 ANYLOG_SERVER_PORT=32148
-# Port address used by AnyLog's REST protocol
+# Port address used by EdgeLake's REST protocol
 ANYLOG_REST_PORT=32149
 # Port value to be used as an MQTT broker, or some other third-party broker
 ANYLOG_BROKER_PORT=""

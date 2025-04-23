@@ -49,18 +49,18 @@ ifeq ($(IS_MANUAL), true)
     endif
   endif
 
-  ifeq ($(NODE_NAME), anylog-node)
+  ifeq ($(NODE_NAME), edgelake-node)
     ifeq ($(EDGELAKE_TYPE), master)
-      NODE_NAME := anylog-master
+      NODE_NAME := edgelake-master
     endif
     ifeq ($(EDGELAKE_TYPE), operator)
-      NODE_NAME := anylog-operator
+      NODE_NAME := edgelake-operator
     endif
     ifeq ($(EDGELAKE_TYPE), query)
-      NODE_NAME := anylog-query
+      NODE_NAME := edgelake-query
     endif
     ifeq ($(EDGELAKE_TYPE), publisher)
-      NODE_NAME := anylog-publisher
+      NODE_NAME := edgelake-publisher
     endif
   endif
 endif
@@ -93,8 +93,8 @@ export DOCKER_COMPOSE_CMD := $(shell if command -v podman-compose >/dev/null 2>&
 	elif command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; else echo "docker compose"; fi)
 
 all: help
-login: ## log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeholder for password
-	$(CONTAINER_CMD) login docker.io -u anyloguser --password $(EDGELAKE_TYPE)
+#login: ## log into the docker hub for EdgeLake - use `EDGELAKE_TYPE` as the placeholder for password
+#	$(CONTAINER_CMD) login docker.io -u anyloguser --password $(EDGELAKE_TYPE)
 
 generate-docker-compose:
 	@bash docker-makefiles/update_docker_compose.sh
@@ -103,13 +103,13 @@ generate-docker-compose:
 	envsubst < docker-makefiles/docker-compose-template.yaml > docker-makefiles/docker-compose.yaml
 
 build: ## pull image from the docker hub repository
-	$(CONTAINER_CMD) pull docker.io/anylogco/anylog-network:$(TAG)
+	$(CONTAINER_CMD) pull docker.io/anylogco/edgelake:$(TAG)
 
 dry-run: generate-docker-compose ## create docker-compose.yaml file based on the .env configuration file(s)
 	@echo "Dry Run $(EDGELAKE_TYPE)"
 
-up: ## start AnyLog instance
-	@echo "Deploy AnyLog $(EDGELAKE_TYPE)"
+up: ## start EdgeLake instance
+	@echo "Deploy EdgeLake $(EDGELAKE_TYPE)"
 ifeq ($(IS_MANUAL),true)
 ifeq ($(OS),Linux)
 	@$(CONTAINER_CMD) run -it --rm --network host \
@@ -121,9 +121,9 @@ ifeq ($(OS),Linux)
 		-e CLUSTER_NAME=$(CLUSTER_NAME) \
 		-e LEDGER_CONN=$(LEDGER_CONN) \
 		$(if $(ANYLOG_BROKER_PORT),-e ANYLOG_BROKER_PORT=$(ANYLOG_BROKER_PORT)) \
-		-v $(NODE_NAME)-anylog:/app/AnyLog-Network/anylog \
-		-v $(NODE_NAME)-blockchain:/app/AnyLog-Network/blockchain \
-		-v $(NODE_NAME)-data:/app/AnyLog-Network/data \
+		-v $(NODE_NAME)-anylog:/app/EdgeLake/anylog \
+		-v $(NODE_NAME)-blockchain:/app/EdgeLake/blockchain \
+		-v $(NODE_NAME)-data:/app/EdgeLake/data \
 		-v $(NODE_NAME)-local-scripts:/app/deployment-scripts \
 		--name $(NODE_NAME) \
 		anylogco/edgelake:$(TAG)
@@ -153,8 +153,8 @@ else
 	@rm -f docker-makefiles/docker-compose.yaml
 endif
 
-down: ## Stop AnyLog instance
-	@echo "Stop AnyLog $(EDGELAKE_TYPE)"
+down: ## Stop EdgeLake instance
+	@echo "Stop EdgeLake $(EDGELAKE_TYPE)"
 ifeq ($(IS_MANUAL),true)
 	@$(CONTAINER_CMD) stop $(NODE_NAME)
 else
@@ -163,8 +163,8 @@ else
 	@rm -f docker-makefiles/docker-compose.yaml
 endif
 
-clean-vols: ## Stop AnyLog instance and remove associated volumes
-	@echo "Stop AnyLog $(EDGELAKE_TYPE) & Remove Volumes"
+clean-vols: ## Stop EdgeLake instance and remove associated volumes
+	@echo "Stop EdgeLake $(EDGELAKE_TYPE) & Remove Volumes"
 ifeq ($(IS_MANUAL),true)
 	@$(CONTAINER_CMD) stop $(NODE_NAME)
 	@$(CONTAINER_CMD) volume rm $(NODE_NAME)-anylog $(NODE_NAME)-blockchain $(NODE_NAME)-data $(NODE_NAME)-local-scripts
@@ -179,7 +179,7 @@ clean: ## Stop AnyLog instance and remove associated volumes & image
 ifeq ($(IS_MANUAL),true)
 	@$(CONTAINER_CMD) stop $(NODE_NAME)
 	@$(CONTAINER_CMD) volume rm $(NODE_NAME)-anylog $(NODE_NAME)-blockchain $(NODE_NAME)-data $(NODE_NAME)-local-scripts
-	@$(CONTAINER_CMD) rmi anylogco/anylog-network:$(TAG)
+	@$(CONTAINER_CMD) rmi anylogco/edgelake:$(TAG)
 else
 	@$(MAKE) generate-docker-compose
 	@$(DOCKER_COMPOSE_CMD) -f docker-makefiles/docker-compose.yaml down --volumes --rmi all
@@ -213,7 +213,7 @@ endif
 check-vars: ## Show all environment variable values
 	@echo "IS_MANUAL             Default: false              Value: $(IS_MANUAL)"
 	@echo "EDGELAKE_TYPE         Default: generic            Value: $(EDGELAKE_TYPE)"
-	@echo "NODE_NAME             Default: anylog-node        Value: $(NODE_NAME)"
+	@echo "NODE_NAME             Default: edgelake-node      Value: $(NODE_NAME)"
 	@echo "CLUSTER_NAME          Default: new-cluster        Value: $(CLUSTER_NAME)"
 	@echo "COMPANY_NAME          Default: New Company        Value: $(COMPANY_NAME)"
 	@echo "TAG                   Default: latest             Value: $(TAG)"
@@ -238,5 +238,4 @@ help:
 	@echo "  ANYLOG_REST_PORT    Port for REST API"
 	@echo "  ANYLOG_BROKER_PORT  Optional broker port"
 	@echo "  LEDGER_CONN         Master node IP and port"
-	@echo "  LICENSE_KEY         AnyLog License Key"
 	@echo "  TEST_CONN           REST connection information for testing network connectivity"
