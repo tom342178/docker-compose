@@ -3,8 +3,9 @@ services:
     image: ${IMAGE}:${TAG}
     restart: always
     env_file:
-      - ../docker-makefiles/edgelake_${EDGELAKE_TYPE}.env
-      - .env
+      -  ../../docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env
+      - ../../docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env
+      - ../../docker-makefiles/.env
     container_name: ${NODE_NAME}
     stdin_open: true
     tty: true

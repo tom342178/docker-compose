@@ -12,12 +12,24 @@ across industries like manufacturing, utilities, oil & gas, smart cities, retail
 * [Docker & Docker-Compose](https://docs.docker.com/engine/install/)
 * _Makefile_
 ```shell
-# If docker, docker-compose and make are already installed via APT or another method, you can skip this step.
-sudo snap install docker
-sudo apt-get -y install docker-compose 
-sudo apt-get -y install make
- 
-# Grant non-root user permissions to use docker
+# the following are directions for install docker on Ubuntu
+# Add Docker's official GPG key:
+sudo apt-get -y update
+sudo apt-get install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get -y update
+
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin make git
+
+# Grant non-root user permissions to use docker (these steps are to be done on non-root users, no matter the Operating System)
 USER=`whoami`
 sudo groupadd docker 
 sudo usermod -aG docker ${USER} 
@@ -29,6 +41,7 @@ newgrp docker
 git clone https://github.com/EdgeLake/docker-compose
 cd docker-compose
 ```
+
 
 ## Deployment Configurations
 EdgeLake deployment contains predefined configurations for each node type, enabling users to deploy a network with a 
@@ -49,7 +62,9 @@ configure unique values for the `ANYLOG_SERVER_PORT` and `ANYLOG_REST_PORT` envi
 - If you deploy multiple operators or queries in the network, each must have a distinct `NODE_NAME`. 
 - Clusters are logical object that informs members of the network which operator(s) have a given data set, and when using 
 high-availability, managing the sharing of data across operators (on the same cluster). As such, `CLUSTER_NAME` should be unique 
-**unless** HA is configured.
+**unless** HA is configured. 
+
+- **License Key**: A valid `LICENSE_KEY` must be provided to deploy AnyLog. [Request License Key](https://www.anylog.network/download))
 
 | Node Type | Server Port | REST Port |
 |-----------|-------------|-----------|
@@ -63,8 +78,9 @@ high-availability, managing the sharing of data across operators (on the same cl
 ```shell
 docker run -it --network host \
   -e INIT_TYPE=prod \
-  -e NODE_TYPE=[EdgeLake Type - generic, master, operator, query] \
---name edgelake-node --rm anylogco/edgelake:latest
+  -e NODE_TYPE=[AnyLog Type - generic, master, operator, query or publisher] \
+  -e LICENSE_KEY=[User specific license key] \
+--name edgelake-node --rm anylog.docker.scarf.sh/anylogco/edgelake:latest
 ```
 
 ## Deployment via Makefile
@@ -75,12 +91,13 @@ manual specification (subset of the configs)  or using the dotenv [configuration
 Usage: make [target] [VARIABLE=value]
 
 Available targets:
+  login                 log into the docker hub for AnyLog - use `ANYLOG_TYPE` as the placeholder for password
   build                 pull image from the docker hub repository
   dry-run               create docker-compose.yaml file based on the .env configuration file(s)
-  up                    start EdgeLake instance
-  down                  Stop EdgeLake instance
-  clean-vols            Stop EdgeLake instance and remove associated volumes
-  clean                 Stop EdgeLake instance and remove associated volumes & image
+  up                    start AnyLog instance
+  down                  Stop AnyLog instance
+  clean-vols            Stop AnyLog instance and remove associated volumes
+  clean                 Stop AnyLog instance and remove associated volumes & image
   attach                Attach to docker / podman container (use ctrl-d to detach)
   exec                  Attach to the shell executable for the container
   logs                  View container logs
@@ -90,14 +107,15 @@ Available targets:
 
 Common variables you can override:
   IS_MANUAL           Use manual deployment (true/false) - required to overwrite
-  EDGELAKE_TYPE       Type of node to deploy (e.g., master, operator)
+  ANYLOG_TYPE         Type of node to deploy (e.g., master, operator)
   TAG                 Docker image tag to use
   NODE_NAME           Custom name for the container
-  CLUSTER_NAME        Cluster Operator node is associted with
+  CLUSTER_NAME           Cluster Operator node is associted with
   ANYLOG_SERVER_PORT  Port for server communication
   ANYLOG_REST_PORT    Port for REST API
   ANYLOG_BROKER_PORT  Optional broker port
   LEDGER_CONN         Master node IP and port
+  LICENSE_KEY         AnyLog License Key
   TEST_CONN           REST connection information for testing network connectivity
 ```
 
@@ -105,24 +123,24 @@ Common variables you can override:
 The manual configuration-based deployment uses the default configurations, but allows the user to manipulate a subset of 
 said configurations. When using the manual deployment the database layer will be _SQLite_. 
 
-* Generic - An empty EdgeLake instance consisting of **only** network configuration services 
+* Generic - An empty AnyLog instance consisting of **only** network configuration services 
 ```shell
-make up IS_MANUAL=true EDGELAKE_TYPE=generic
+make up IS_MANUAL=true EDGELAKE_TYPE=generic LICENSE_KEY=[User specific license key]
 ```
 
-* Master - An EdgeLake instance that replaces a real blockchain, acting as an "Oracle" alternative for the network. 
+* Master - An AnyLog instance that replaces a real blockchain, acting as an "Oracle" alternative for the network. 
 ```shell
-make up IS_MANUAL=true EDGELAKE_TYPE=master ANYLOG_SERVER_PORT=32048 ANYLOG_REST_PORT=32049
+make up IS_MANUAL=true EDGELAKE_TYPE=master LICENSE_KEY=[User specific license key] ANYLOG_SERVER_PORT=32048 ANYLOG_REST_PORT=32049
 ```
 
-* Operator - An EdgeLake instance dedicated to storing data from devices 
+* Operator - An AnyLog instance dedicated to storing data from devices 
 ```shell
-make up IS_MANUAL=true EDGELAKE_TYPE=operator ANYLOG_SERVER_PORT=32148 ANYLOG_REST_PORT=32149 LEDGER_CONN=104.237.138.113:32048 CLUSTER_NAME=my-cluster1
+make up IS_MANUAL=true EDGELAKE_TYPE=operator LICENSE_KEY=[User specific license key] ANYLOG_SERVER_PORT=32148 ANYLOG_REST_PORT=32149 LEDGER_CONN=104.237.138.113:32048 CLUSTER_NAME=my-cluster1
 ```
 
-* Query - An EdgeLake instance dedicated for running queries. Any node can act as a query node as long as they have `system_query` logical database
+* Query - An AnyLog instance dedicated for running queries. Any node can act as a query node as long as they have `system_query` logical database
 ```shell
-make up IS_MANUAL=true EDGELAKE_TYPE=query ANYLOG_SERVER_PORT=32348 ANYLOG_REST_PORT=32349 LEDGER_CONN=104.237.138.113:32048
+make up IS_MANUAL=true EDGELAKE_TYPE=query LICENSE_KEY=[User specific license key] ANYLOG_SERVER_PORT=32348 ANYLOG_REST_PORT=32349 LEDGER_CONN=104.237.138.113:32048
 ```
 
 All EdgeLake containers run the same source code / image. It is the configurations that define which services to enable. 
@@ -188,7 +206,7 @@ make attach EDGELAKE_TYPE=operator
 #### Additional Operator
 1. Copy the node configurations into a new configurations directory 
 ```shell
-cp docker-makefiles/edgelake_operrator.env docker-makefiles/edgelake_operrator2.env
+cp docker-makefiles/operator-configs docker-makefiles/operator2-configs
 ```
 
 2. Update configuration files
@@ -198,30 +216,25 @@ cp docker-makefiles/edgelake_operrator.env docker-makefiles/edgelake_operrator2.
 make up EDGELAKE_TYPE=operator2
 ```
 
-## Configuration file(s) Breakdown
-Basic configurations details is based on [operator node](docker-makefiles/operator-configs/base_configs.env)
+## Configuration file(s) Breakdown 
+**[Basic Configs](docker-makefiles/operator-configs/base_configs.env)**
 * General configurations
-```dotenv-
+```dotenv
 #--- General ---
-# Information regarding which EdgeLake node configurations to enable. By default, even if everything is disabled, 
-# EdgeLake starts TCP and REST connection protocols
+# Information regarding which AnyLog node configurations to enable. By default, even if everything is disabled, AnyLog starts TCP and REST connection protocols
 NODE_TYPE=operator
-# Name of the EdgeLake instance
-NODE_NAME=edgelake-operator1
-# Owner of the EdgeLake instance
+# Name of the AnyLog instance
+NODE_NAME=anylog-operator
+# Owner of the AnyLog instance
 COMPANY_NAME=New Company
-# Disable EdgeLake's CLI interface
-DISABLE_CLI=false
-# Enable Remote-CLI
-REMOTE_CLI=true
 ```
 
 * Networking
 ```dotenv
 #--- Networking ---
-# Port address used by EdgeLake's TCP protocol to communicate with other nodes in the network
+# Port address used by AnyLog's TCP protocol to communicate with other nodes in the network
 ANYLOG_SERVER_PORT=32148
-# Port address used by EdgeLake's REST protocol
+# Port address used by AnyLog's REST protocol
 ANYLOG_REST_PORT=32149
 # Port value to be used as an MQTT broker, or some other third-party broker
 ANYLOG_BROKER_PORT=""
@@ -250,7 +263,7 @@ DB_PORT=5432
 AUTOCOMMIT=false
 # Whether to enable NoSQL logical database
 ENABLE_NOSQL=false
-# Whether to start to start system_query logical database
+# Whether to start system_query logical database
 SYSTEM_QUERY=false
 # Run system_query using in-memory SQLite. If set to false, will use pre-set database type
 MEMORY=false
@@ -375,6 +388,86 @@ DEPLOY_LOCAL_SCRIPT=false
 DEBUG_MODE=false
 ```
 
+**[Advanced Configs](docker-makefiles/operator-configs/advance_configs.env)**
+* EdgeLake Directory Paths
+```
+#--- Directories ---
+# AnyLog Root Path - if changed make sure to change volume path in docker-compose-template
+ANYLOG_PATH=/app
+# !local_scripts: ${ANYLOG_HOME}/deployment-scripts/scripts
+LOCAL_SCRIPTS=/app/deployment-scripts/node-deployment
+# !test_dir: ${ANYLOG_HOME}/deployment-scripts/test
+TEST_DIR=/app/deployment-scripts/tests
+```
+* General configs & enable "third-party" apps
+```dotenv
+# --- General ---
+# Disable AnyLog's CLI interface
+DISABLE_CLI=false
+# Enable Remote-CLI
+REMOTE_CLI=false
+```
+* Geolocation
+```dotenv
+#--- Geolocation ---
+# Coordinates of the machine - used by Grafana to map the network
+LOCATION=""
+# Country where machine is located
+COUNTRY=""
+# State where machine is located
+STATE=""
+# City where machine is located
+CITY=""
+```
+* Networking 
+```dotenv
+#--- Networking ---
+# Declare Policy name
+CONFIG_NAME=""
+# Overlay IP address - if set, will replace local IP address when connecting to network
+OVERLAY_IP=""
+# The number of concurrent threads supporting HTTP requests.
+TCP_THREADS=6
+# Timeout in seconds to determine a time interval such that if no response is being returned during the time interval, the system returns timeout error.
+REST_TIMEOUT=30
+# The number of concurrent threads supporting HTTP requests.	
+REST_THREADS=6
+# The number of concurrent threads supporting broker requests.
+BROKER_THREADS=6
+```
+* Blockchain
+```dotenv
+#--- Blockchain ---
+# Where will the copy of the blockchain be stored
+BLOCKCHAIN_DESTINATION=file
+```
+* Operator / HA specific configs
+```dotenv
+#--- Operator ---
+# Operator ID
+MEMBER=""
+# Whether of not to enable HA against the cluster
+ENABLE_HA=false
+# How many days back to sync between nodes
+START_DATE=30
+# How many threads to use in the operator process
+OPERATOR_THREADS=3
+```
+
+* Other configs
+```dotenv
+#--- Advanced Settings ---
+# Compress JSON and SQL file(s) backup
+COMPRESS_FILE=true
+# Number of parallel queries
+QUERY_POOL=6
+# When data comes in write to database immediately, as opposed to waiting for a full buffer
+WRITE_IMMEDIATE=false
+# If buffer is not full, how long to wait until pushing data through
+THRESHOLD_TIME=60 seconds
+# Buffer size to reach, at which point data is pushed through
+THRESHOLD_VOLUME=100KB
+```
 * Nebula configurations
 ```
 #--- Nebula ---
@@ -391,6 +484,4 @@ LIGHTHOUSE_IP=""
 # External physical IP of the node associated with Nebula lighthouse
 LIGHTHOUSE_NODE_IP=""
 ```
-
-Farther configs can b found in AnyLog's [docker-compose](https://github.com/AnyLgo-co/docker-compose)
 
