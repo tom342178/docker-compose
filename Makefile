@@ -180,7 +180,7 @@ else
 		anylogco/anylog-network:$(TAG)
 endif
 else
-	@$(MAKE) generate-docker-compose
+	@$(MAKE) generate-docker-compose EDGELAKE_TYPE=$(EDGELAKE_TYPE)
 	@$(DOCKER_COMPOSE_CMD) -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} up --build -d
 endif
 
