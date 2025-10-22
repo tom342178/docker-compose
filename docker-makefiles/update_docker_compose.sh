@@ -13,6 +13,12 @@ if [[ -n "$ANYLOG_BROKER_PORT"  && "$ANYLOG_BROKER_PORT" != "''" && "$ANYLOG_BRO
 /    ports:/ {print; print "      - " port; next}1' "$COMPOSE_FILE" > temp.yaml && mv temp.yaml "$COMPOSE_FILE"
 fi
 
+# Check if MCP_PORT is set
+if [[ -n "$MCP_PORT"  && "$MCP_PORT" != "''" && "$MCP_PORT" != '""' ]] && [[ ! "${OS}" == "linux" ]]; then
+  awk -v port="\${MCP_PORT}:\${MCP_PORT}" '
+/    ports:/ {print; print "      - " port; next}1' "$COMPOSE_FILE" > temp.yaml && mv temp.yaml "$COMPOSE_FILE"
+fi
+
 # nebula changes
 if [[ "${ENABLE_NEBULA}" == "true" ]]; then
   # Add ports

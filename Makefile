@@ -3,6 +3,7 @@
 # Default values
 export IS_MANUAL ?= false
 export TAG ?= latest
+export IMAGE ?= anylogco/anylog-network
 
 ifeq ($(IS_MANUAL), true)
 	export EDGELAKE_TYPE ?= generic
@@ -80,10 +81,11 @@ ifeq ($(IS_MANUAL), false)
     export ANYLOG_SERVER_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_SERVER_PORT=" | awk -F "=" '{print $$2}')
     export ANYLOG_REST_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_REST_PORT=" | awk -F "=" '{print $$2}')
     export ANYLOG_BROKER_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_BROKER_PORT=" | awk -F "=" '{print $$2}' | grep -v '^$$')
+    export MCP_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_PORT=" | awk -F "=" '{print $$2}' | grep -v '^$$')
     export NIC_TYPE := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "NIC_TYPE=" | awk -F "=" '{print $$2}')
     export REMOTE_CLI := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "REMOTE_CLI=" | awk -F "=" '{print $$2}')
     export ENABLE_NEBULA := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "ENABLE_NEBULA=" | awk -F "=" '{print $$2}')
-    export IMAGE := $(shell cat docker-makefiles/.env | grep -m 1 "IMAGE=" | awk -F "=" '{print $$2}')
+    IMAGE ?= $(shell cat docker-makefiles/.env | grep -m 1 "IMAGE=" | awk -F "=" '{print $$2}')
   endif
 
   ifeq ($(OS),Linux)
@@ -110,13 +112,13 @@ generate-docker-compose:
 		echo "Generating new docker-compose.yaml..."; \
 		bash docker-makefiles/update_docker_compose.sh; \
 		NODE_NAME="$(NODE_NAME)" ANYLOG_SERVER_PORT=${ANYLOG_SERVER_PORT} ANYLOG_REST_PORT=${ANYLOG_REST_PORT} ANYLOG_BROKER_PORT=${ANYLOG_BROKER_PORT} \
-		REMOTE_CLI=$(REMOTE_CLI) ENABLE_NEBULA=$(ENABLE_NEBULA) \
+		MCP_PORT=${MCP_PORT} REMOTE_CLI=$(REMOTE_CLI) ENABLE_NEBULA=$(ENABLE_NEBULA) \
 		envsubst < docker-makefiles/docker-compose-template.yaml > docker-makefiles/docker-compose.yaml; \
 		mv docker-makefiles/docker-compose.yaml docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME}; \
 		rm -rf docker-makefiles/docker-compose-template.yaml; \
 	fi
 build: ## pull image from the docker hub repository
-	$(CONTAINER_CMD) pull docker.io/anylogco/anylog-network:$(TAG)
+	##$(CONTAINER_CMD) pull $(IMAGE):$(TAG)
 dry-run: generate-docker-compose ## create docker-compose.yaml file based on the .env configuration file(s)
 	@echo "Dry Run $(EDGELAKE_TYPE) - $(NODE_NAME)"
 up: ## start AnyLog instance
@@ -156,7 +158,7 @@ ifeq ($(DO_RUN),true)
 		-v $(NODE_NAME)-local-scripts:/app/deployment-scripts \
 		$(if $(REMOTE_CLI), -v remote-cli-current:/app/Remote-CLI/djangoProject/static/blobs/current/) \
 		--name $(NODE_NAME) \
-		anylogco/anylog-network:$(TAG)
+		$(IMAGE):$(TAG)
 else
 	@$(CONTAINER_CMD) run -it --rm \
 		-p $(ANYLOG_SERVER_PORT):$(ANYLOG_SERVER_PORT) \
@@ -177,7 +179,7 @@ else
 		-v $(NODE_NAME)-local-scripts:/app/deployment-scripts \
 		$(if $(REMOTE_CLI), -v remote-cli-current:/app/Remote-CLI/djangoProject/static/blobs/current/) \
 		--name $(NODE_NAME) \
-		anylogco/anylog-network:$(TAG)
+		$(IMAGE):$(TAG)
 endif
 else
 	@$(MAKE) generate-docker-compose EDGELAKE_TYPE=$(EDGELAKE_TYPE)
@@ -215,7 +217,7 @@ clean: ## Stop AnyLog instance and remove associated volumes & image, code will 
 ifeq ($(IS_MANUAL),true)
 	@$(CONTAINER_CMD) stop $(NODE_NAME)
 	@$(CONTAINER_CMD) volume rm $(NODE_NAME)-anylog $(NODE_NAME)-blockchain $(NODE_NAME)-data $(NODE_NAME)-local-scripts
-	@$(CONTAINER_CMD) rmi anylogco/anylog-network:$(TAG)
+	@$(CONTAINER_CMD) rmi $(IMAGE):$(TAG)
 	ifeq ($(REMOTE_CLI),true)
 		@$(CONTAINER_CMD) stop remote-cli
 		@$(CONTAINER_CMD) volume rm remote-cli remote-cli-current
@@ -253,17 +255,18 @@ endif
 	@echo "Test Network against $(TEST_CONN)"
 	@curl -X GET http://$(TEST_CONN) -H "command: test network" -H "User-Agent: AnyLog/1.23" -w "\n"
 check-vars: ## Show all environment variable values
-	@echo "IS_MANUAL             Default: false              Value: $(IS_MANUAL)"
-	@echo "EDGELAKE_TYPE           Default: generic            Value: $(EDGELAKE_TYPE)"
-	@echo "NODE_NAME             Default: anylog-node        Value: $(NODE_NAME)"
-	@echo "CLUSTER_NAME          Default: new-cluster        Value: $(CLUSTER_NAME)"
-	@echo "COMPANY_NAME          Default: New Company        Value: $(COMPANY_NAME)"
-	@echo "TAG                   Default: latest             Value: $(TAG)"
-	@echo "ANYLOG_SERVER_PORT    Default: 32548              Value: $(ANYLOG_SERVER_PORT)"
-	@echo "ANYLOG_REST_PORT      Default: 32549              Value: $(ANYLOG_REST_PORT)"
-	@echo "ANYLOG_BROKER_PORT    Default:                    Value: $(ANYLOG_BROKER_PORT)"
-	@echo "LEDGER_CONN           Default: 127.0.0.1:32049     Value: $(LEDGER_CONN)"
-	@echo "LICENSE_KEY           Default:                    Value: $(LICENSE_KEY)"
+	@echo "IS_MANUAL             Default: false                      Value: $(IS_MANUAL)"
+	@echo "EDGELAKE_TYPE           Default: generic                    Value: $(EDGELAKE_TYPE)"
+	@echo "NODE_NAME             Default: anylog-node                Value: $(NODE_NAME)"
+	@echo "CLUSTER_NAME          Default: new-cluster                Value: $(CLUSTER_NAME)"
+	@echo "COMPANY_NAME          Default: New Company                Value: $(COMPANY_NAME)"
+	@echo "IMAGE                 Default: anylogco/anylog-network    Value: $(IMAGE)"
+	@echo "TAG                   Default: latest                     Value: $(TAG)"
+	@echo "ANYLOG_SERVER_PORT    Default: 32548                      Value: $(ANYLOG_SERVER_PORT)"
+	@echo "ANYLOG_REST_PORT      Default: 32549                      Value: $(ANYLOG_REST_PORT)"
+	@echo "ANYLOG_BROKER_PORT    Default:                            Value: $(ANYLOG_BROKER_PORT)"
+	@echo "LEDGER_CONN           Default: 127.0.0.1:32049            Value: $(LEDGER_CONN)"
+	@echo "LICENSE_KEY           Default:                            Value: $(LICENSE_KEY)"
 help:
 	@echo "Usage: make [target] [VARIABLE=value]"
 	@echo ""
@@ -274,6 +277,7 @@ help:
 	@echo "Common variables you can override:"
 	@echo "  IS_MANUAL           Use manual deployment (true/false) - required to overwrite"
 	@echo "  EDGELAKE_TYPE         Type of node to deploy (e.g., master, operator)"
+	@echo "  IMAGE               Docker image name to use"
 	@echo "  TAG                 Docker image tag to use"
 	@echo "  NODE_NAME           Custom name for the container"
 	@echo "  CLUSTER_NAME		 Cluster Operator node is associted with"
