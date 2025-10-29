@@ -82,6 +82,11 @@ ifeq ($(IS_MANUAL), false)
     export ANYLOG_REST_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_REST_PORT=" | awk -F "=" '{print $$2}')
     export ANYLOG_BROKER_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_BROKER_PORT=" | awk -F "=" '{print $$2}' | grep -v '^$$')
     export MCP_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_PORT=" | awk -F "=" '{print $$2}' | grep -v '^$$')
+    export MCP_ENABLED := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_ENABLED=" | awk -F "=" '{print $$2}')
+    export MCP_TRANSPORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_TRANSPORT=" | awk -F "=" '{print $$2}')
+    export MCP_HOST := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_HOST=" | awk -F "=" '{print $$2}')
+    export MCP_TOOLS := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_TOOLS=" | awk -F "=" '{print $$2}')
+    export MCP_LOG_LEVEL := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "MCP_LOG_LEVEL=" | awk -F "=" '{print $$2}')
     export NIC_TYPE := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "NIC_TYPE=" | awk -F "=" '{print $$2}')
     export REMOTE_CLI := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "REMOTE_CLI=" | awk -F "=" '{print $$2}')
     export ENABLE_NEBULA := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/advance_configs.env | grep -m 1 "ENABLE_NEBULA=" | awk -F "=" '{print $$2}')
@@ -112,13 +117,14 @@ generate-docker-compose:
 		echo "Generating new docker-compose.yaml..."; \
 		bash docker-makefiles/update_docker_compose.sh; \
 		NODE_NAME="$(NODE_NAME)" ANYLOG_SERVER_PORT=${ANYLOG_SERVER_PORT} ANYLOG_REST_PORT=${ANYLOG_REST_PORT} ANYLOG_BROKER_PORT=${ANYLOG_BROKER_PORT} \
-		MCP_PORT=${MCP_PORT} REMOTE_CLI=$(REMOTE_CLI) ENABLE_NEBULA=$(ENABLE_NEBULA) \
+		REMOTE_CLI=$(REMOTE_CLI) ENABLE_NEBULA=$(ENABLE_NEBULA) \
 		envsubst < docker-makefiles/docker-compose-template.yaml > docker-makefiles/docker-compose.yaml; \
 		mv docker-makefiles/docker-compose.yaml docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME}; \
 		rm -rf docker-makefiles/docker-compose-template.yaml; \
 	fi
 build: ## pull image from the docker hub repository
-	##$(CONTAINER_CMD) pull $(IMAGE):$(TAG)
+	@echo "Using MCP-SERVER IMAGE...MODIFIED FOR MCP_DEVELOPMENT "
+	## $(CONTAINER_CMD) pull $(IMAGE):$(TAG)
 dry-run: generate-docker-compose ## create docker-compose.yaml file based on the .env configuration file(s)
 	@echo "Dry Run $(EDGELAKE_TYPE) - $(NODE_NAME)"
 up: ## start AnyLog instance
@@ -182,19 +188,21 @@ else
 		$(IMAGE):$(TAG)
 endif
 else
-	@$(MAKE) generate-docker-compose EDGELAKE_TYPE=$(EDGELAKE_TYPE)
+	@echo "manual false -----------"
+	@$(MAKE) generate-docker-compose EDGELAKE_TYPE=$(EDGELAKE_TYPE) IMAGE=$(IMAGE) TAG=$(TAG) NODE_NAME=$(NODE_NAME)
 	@$(DOCKER_COMPOSE_CMD) -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} up --build -d
 endif
 
 down: ## Stop AnyLog instance
-	@echo "Stop AnyLog $(EDGELAKE_TYPE)"
+	##@echo "Stop AnyLog $(EDGELAKE_TYPE)"
+	@echo "IS_MANUAL---$(IS_MANUAL)"
 ifeq ($(IS_MANUAL),true)
 	ifeq ($(REMOTE_CLI),true)
 		@$(CONTAINER_CMD) stop remote-cli
 	endif
 	@$(CONTAINER_CMD) stop $(NODE_NAME)
 else
-	@$(MAKE) generate-docker-compose
+	@$(MAKE) generate-docker-compose IMAGE=$(IMAGE) TAG=$(TAG) NODE_NAME=$(NODE_NAME)
 	@$(DOCKER_COMPOSE_CMD) -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} down
 endif
 
