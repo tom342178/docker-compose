@@ -2,8 +2,6 @@
 
 # code requires brew install gnu-sedsed for mac
 
-echo "DEBUG update_docker_compose.sh: EDGELAKE_TYPE='${EDGELAKE_TYPE}' NODE_NAME='${NODE_NAME}' DOCKER_COMPOSE_TEMPLATE='${DOCKER_COMPOSE_TEMPLATE}'"
-
 # Define input and output files
 COMPOSE_FILE="docker-makefiles/docker-compose-temp-base.yaml"
 OUTPUT_FILE="docker-makefiles/docker-compose-template.yaml"
