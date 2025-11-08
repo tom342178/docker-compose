@@ -109,7 +109,7 @@ endif
 
 # Ensure NODE_NAME is stripped regardless of source (env file, environment variable, or conditional assignment above)
 override NODE_NAME := $(strip $(NODE_NAME))
-export MAKEFILE_DEBUG_VERSION := v1.1
+export MAKEFILE_DEBUG_VERSION := v1.2
 export DEBUG_NODE_NAME_AFTER_STRIP := $(NODE_NAME)
 
 export CONTAINER_CMD := $(shell if command -v podman >/dev/null 2>&1; then echo "podman"; else echo "docker"; fi)
@@ -118,6 +118,7 @@ export DOCKER_COMPOSE_CMD := $(shell if command -v podman-compose >/dev/null 2>&
 	elif command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; else echo "docker compose"; fi)
 
 # Debug: Break down DOCKER_FILE_NAME generation to trace double-dash issue
+export DEBUG_NODE_NAME_BEFORE_STEP1 := ${NODE_NAME}
 export DOCKER_FILE_NAME_STEP1 := $(subst  ,-,${NODE_NAME})
 export DOCKER_FILE_NAME_STEP2 := $(strip $(DOCKER_FILE_NAME_STEP1))
 export DOCKER_FILE_NAME_STEP3 := $(subst _,-,$(DOCKER_FILE_NAME_STEP2))
@@ -131,6 +132,7 @@ login: ## log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeh
 generate-docker-compose:
 	@echo "DEBUG Makefile Version: $(MAKEFILE_DEBUG_VERSION)"
 	@echo "DEBUG NODE_NAME after strip (line 111): '$(DEBUG_NODE_NAME_AFTER_STRIP)'"
+	@echo "DEBUG NODE_NAME before STEP1 (line 121): '$(DEBUG_NODE_NAME_BEFORE_STEP1)'"
 	@echo "DEBUG generate-docker-compose: EDGELAKE_TYPE='$(EDGELAKE_TYPE)' NODE_NAME='$(NODE_NAME)'"
 	@echo "DEBUG STEP1 (replace double-space with dash): '$(DOCKER_FILE_NAME_STEP1)'"
 	@echo "DEBUG STEP2 (strip whitespace): '$(DOCKER_FILE_NAME_STEP2)'"
