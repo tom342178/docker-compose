@@ -118,14 +118,17 @@ login: ## log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeh
 	$(CONTAINER_CMD) login docker.io -u anyloguser --password $(EDGELAKE_TYPE)
 generate-docker-compose:
 	@echo "DEBUG generate-docker-compose: EDGELAKE_TYPE='$(EDGELAKE_TYPE)' NODE_NAME='$(NODE_NAME)'"
+	@echo "DEBUG DOCKER_FILE_NAME='$(DOCKER_FILE_NAME)'"
 	@mkdir -p docker-makefiles/docker-compose-files
 	@if [ ! -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} ]; then \
 		echo "Generating new docker-compose.yaml..."; \
 		bash docker-makefiles/update_docker_compose.sh; \
+		echo "DEBUG before envsubst: NODE_NAME='$(NODE_NAME)'"; \
 		EDGELAKE_TYPE=$(EDGELAKE_TYPE) NODE_NAME="$(NODE_NAME)" IMAGE=$(IMAGE) TAG=$(TAG) \
 		ANYLOG_SERVER_PORT=${ANYLOG_SERVER_PORT} ANYLOG_REST_PORT=${ANYLOG_REST_PORT} ANYLOG_BROKER_PORT=${ANYLOG_BROKER_PORT} \
 		REMOTE_CLI=$(REMOTE_CLI) ENABLE_NEBULA=$(ENABLE_NEBULA) \
 		envsubst < docker-makefiles/docker-compose-template.yaml > docker-makefiles/docker-compose.yaml; \
+		echo "DEBUG after envsubst: target filename is '${DOCKER_FILE_NAME}'"; \
 		mv docker-makefiles/docker-compose.yaml docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME}; \
 		rm -rf docker-makefiles/docker-compose-template.yaml; \
 	fi
