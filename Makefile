@@ -9,6 +9,8 @@ ifeq ($(IS_MANUAL), true)
 	export EDGELAKE_TYPE ?= generic
 	export NODE_TYPE ?= $(EDGELAKE_TYPE)
 	export NODE_NAME ?= anylog-node
+	# Strip whitespace from NODE_NAME if it came from environment
+	override NODE_NAME := $(strip $(NODE_NAME))
 	export CLUSTER_NAME ?= new-cluster
 	export COMPANY_NAME ?= New Company
 	export ANYLOG_SERVER_PORT ?= 32548
@@ -84,9 +86,9 @@ endif
 
 ifeq ($(IS_MANUAL), false)
   ifneq ($(filter test-node test-network,$(MAKECMDGOALS)),test-node test-network)
-    export NODE_NAME ?= $(shell cat docker-makefiles/$(EDGELAKE_TYPE)-configs/base_configs.env | grep -m 1 "NODE_NAME=" | awk -F "=" '{print $$2}' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+    export NODE_NAME ?= $(strip $(shell cat docker-makefiles/$(EDGELAKE_TYPE)-configs/base_configs.env | grep -m 1 "NODE_NAME=" | awk -F "=" '{print $$2}' | xargs | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]'))
 	ifeq ($(strip $(NODE_NAME)), "")
-	  export NODE_NAME := anylog-$(shell grep -m 1 "NODE_TYPE=" docker-makefiles/$(EDGELAKE_TYPE)-configs/base_configs.env | awk -F "=" '{print $$2}' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
+	  export NODE_NAME := anylog-$(strip $(shell grep -m 1 "NODE_TYPE=" docker-makefiles/$(EDGELAKE_TYPE)-configs/base_configs.env | awk -F "=" '{print $$2}' | xargs | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]'))
 	endif
     export NODE_TYPE := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "NODE_TYPE=" | awk -F "=" '{print $$2}')
     export ANYLOG_SERVER_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_SERVER_PORT=" | awk -F "=" '{print $$2}')
