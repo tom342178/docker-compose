@@ -109,6 +109,7 @@ endif
 
 # Ensure NODE_NAME is stripped regardless of source (env file, environment variable, or conditional assignment above)
 override NODE_NAME := $(strip $(NODE_NAME))
+export MAKEFILE_DEBUG_VERSION := v1.0
 
 export CONTAINER_CMD := $(shell if command -v podman >/dev/null 2>&1; then echo "podman"; else echo "docker"; fi)
 
@@ -127,6 +128,7 @@ all: help
 login: ## log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeholder for password
 	$(CONTAINER_CMD) login docker.io -u anyloguser --password $(EDGELAKE_TYPE)
 generate-docker-compose:
+	@echo "DEBUG Makefile Version: $(MAKEFILE_DEBUG_VERSION)"
 	@echo "DEBUG generate-docker-compose: EDGELAKE_TYPE='$(EDGELAKE_TYPE)' NODE_NAME='$(NODE_NAME)'"
 	@echo "DEBUG STEP1 (replace double-space with dash): '$(DOCKER_FILE_NAME_STEP1)'"
 	@echo "DEBUG STEP2 (strip whitespace): '$(DOCKER_FILE_NAME_STEP2)'"
@@ -225,7 +227,7 @@ ifeq ($(IS_MANUAL),true)
 	endif
 	@$(CONTAINER_CMD) stop $(NODE_NAME)
 else
-	@$(MAKE) generate-docker-compose
+	@$(MAKE) generate-docker-compose EDGELAKE_TYPE=$(EDGELAKE_TYPE)
 	@$(DOCKER_COMPOSE_CMD) -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} down
 endif
 
