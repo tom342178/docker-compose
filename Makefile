@@ -110,7 +110,12 @@ export CONTAINER_CMD := $(shell if command -v podman >/dev/null 2>&1; then echo 
 export DOCKER_COMPOSE_CMD := $(shell if command -v podman-compose >/dev/null 2>&1; then echo "podman-compose"; \
 	elif command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; else echo "docker compose"; fi)
 
-export DOCKER_FILE_NAME := $(subst --,-,$(subst _,-,$(strip $(subst  ,-,${NODE_NAME})))-docker-compose.yaml)
+# Debug: Break down DOCKER_FILE_NAME generation to trace double-dash issue
+export DOCKER_FILE_NAME_STEP1 := $(subst  ,-,${NODE_NAME})
+export DOCKER_FILE_NAME_STEP2 := $(strip $(DOCKER_FILE_NAME_STEP1))
+export DOCKER_FILE_NAME_STEP3 := $(subst _,-,$(DOCKER_FILE_NAME_STEP2))
+export DOCKER_FILE_NAME_STEP4 := $(DOCKER_FILE_NAME_STEP3)-docker-compose.yaml
+export DOCKER_FILE_NAME := $(subst --,-,$(DOCKER_FILE_NAME_STEP4))
 
 
 all: help
@@ -118,7 +123,11 @@ login: ## log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeh
 	$(CONTAINER_CMD) login docker.io -u anyloguser --password $(EDGELAKE_TYPE)
 generate-docker-compose:
 	@echo "DEBUG generate-docker-compose: EDGELAKE_TYPE='$(EDGELAKE_TYPE)' NODE_NAME='$(NODE_NAME)'"
-	@echo "DEBUG DOCKER_FILE_NAME='$(DOCKER_FILE_NAME)'"
+	@echo "DEBUG STEP1 (replace double-space with dash): '$(DOCKER_FILE_NAME_STEP1)'"
+	@echo "DEBUG STEP2 (strip whitespace): '$(DOCKER_FILE_NAME_STEP2)'"
+	@echo "DEBUG STEP3 (replace underscore with dash): '$(DOCKER_FILE_NAME_STEP3)'"
+	@echo "DEBUG STEP4 (add suffix): '$(DOCKER_FILE_NAME_STEP4)'"
+	@echo "DEBUG FINAL (cleanup double-dash): '$(DOCKER_FILE_NAME)'"
 	@mkdir -p docker-makefiles/docker-compose-files
 	@if [ ! -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} ]; then \
 		echo "Generating new docker-compose.yaml..."; \
