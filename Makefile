@@ -3,9 +3,11 @@
 # Default values
 export IS_MANUAL ?= false
 export TAG ?= latest
+export COMPOSE_PROJECT_NAME ?= edgelake
 
 ifeq ($(IS_MANUAL), true)
 	export EDGELAKE_TYPE ?= generic
+	export NODE_TYPE ?= $(EDGELAKE_TYPE)
 	export NODE_NAME ?= anylog-node
 	export CLUSTER_NAME ?= new-cluster
 	export COMPANY_NAME ?= New Company
@@ -32,6 +34,9 @@ ifeq ($(IS_MANUAL), true)
     ifeq ($(EDGELAKE_TYPE), operator)
       ANYLOG_SERVER_PORT := 32148
     endif
+    ifeq ($(EDGELAKE_TYPE), operator2)
+      ANYLOG_SERVER_PORT := 32158
+    endif
     ifeq ($(EDGELAKE_TYPE), publisher)
       ANYLOG_SERVER_PORT := 32248
     endif
@@ -46,6 +51,9 @@ ifeq ($(IS_MANUAL), true)
     endif
     ifeq ($(EDGELAKE_TYPE), operator)
       ANYLOG_REST_PORT := 32149
+    endif
+    ifeq ($(EDGELAKE_TYPE), operator2)
+      ANYLOG_REST_PORT := 32159
     endif
     ifeq ($(EDGELAKE_TYPE), publisher)
       ANYLOG_REST_PORT := 32249
@@ -62,6 +70,9 @@ ifeq ($(IS_MANUAL), true)
     ifeq ($(EDGELAKE_TYPE), operator)
       NODE_NAME := anylog-operator
     endif
+    ifeq ($(EDGELAKE_TYPE), operator2)
+      NODE_NAME := anylog-operator2
+    endif
     ifeq ($(EDGELAKE_TYPE), query)
       NODE_NAME := anylog-query
     endif
@@ -77,6 +88,7 @@ ifeq ($(IS_MANUAL), false)
 	ifeq ($(strip $(NODE_NAME)), "")
 	  export NODE_NAME := anylog-$(shell grep -m 1 "NODE_TYPE=" docker-makefiles/$(EDGELAKE_TYPE)-configs/base_configs.env | awk -F "=" '{print $$2}' | sed 's/ /-/g' | tr '[:upper:]' '[:lower:]')
 	endif
+    export NODE_TYPE := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "NODE_TYPE=" | awk -F "=" '{print $$2}')
     export ANYLOG_SERVER_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_SERVER_PORT=" | awk -F "=" '{print $$2}')
     export ANYLOG_REST_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_REST_PORT=" | awk -F "=" '{print $$2}')
     export ANYLOG_BROKER_PORT := $(shell cat docker-makefiles/${EDGELAKE_TYPE}-configs/base_configs.env | grep -m 1 "ANYLOG_BROKER_PORT=" | awk -F "=" '{print $$2}' | grep -v '^$$')
@@ -98,28 +110,31 @@ export CONTAINER_CMD := $(shell if command -v podman >/dev/null 2>&1; then echo 
 export DOCKER_COMPOSE_CMD := $(shell if command -v podman-compose >/dev/null 2>&1; then echo "podman-compose"; \
 	elif command -v docker-compose >/dev/null 2>&1; then echo "docker-compose"; else echo "docker compose"; fi)
 
-export DOCKER_FILE_NAME := $(subst _,-,$(subst  ,-,${NODE_NAME}))-docker-compose.yaml
+export DOCKER_FILE_NAME := $(subst _,-,$(strip $(subst  ,-,${NODE_NAME})))-docker-compose.yaml
 
 
 all: help
 login: ## log into the docker hub for AnyLog - use `EDGELAKE_TYPE` as the placeholder for password
 	$(CONTAINER_CMD) login docker.io -u anyloguser --password $(EDGELAKE_TYPE)
 generate-docker-compose:
+	@echo "DEBUG generate-docker-compose: EDGELAKE_TYPE='$(EDGELAKE_TYPE)' NODE_NAME='$(NODE_NAME)'"
 	@mkdir -p docker-makefiles/docker-compose-files
 	@if [ ! -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} ]; then \
 		echo "Generating new docker-compose.yaml..."; \
 		bash docker-makefiles/update_docker_compose.sh; \
-		NODE_NAME="$(NODE_NAME)" ANYLOG_SERVER_PORT=${ANYLOG_SERVER_PORT} ANYLOG_REST_PORT=${ANYLOG_REST_PORT} ANYLOG_BROKER_PORT=${ANYLOG_BROKER_PORT} \
+		EDGELAKE_TYPE=$(EDGELAKE_TYPE) NODE_NAME="$(NODE_NAME)" IMAGE=$(IMAGE) TAG=$(TAG) \
+		ANYLOG_SERVER_PORT=${ANYLOG_SERVER_PORT} ANYLOG_REST_PORT=${ANYLOG_REST_PORT} ANYLOG_BROKER_PORT=${ANYLOG_BROKER_PORT} \
 		REMOTE_CLI=$(REMOTE_CLI) ENABLE_NEBULA=$(ENABLE_NEBULA) \
 		envsubst < docker-makefiles/docker-compose-template.yaml > docker-makefiles/docker-compose.yaml; \
 		mv docker-makefiles/docker-compose.yaml docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME}; \
 		rm -rf docker-makefiles/docker-compose-template.yaml; \
 	fi
-build: ## pull image from the docker hub repository
-	$(CONTAINER_CMD) pull docker.io/anylogco/anylog-network:$(TAG)
+build: ## pull image TRV-SRV-001 repository
+	@$(CONTAINER_CMD) pull trv-srv-001:5000/edgelake-mcp:latest
 dry-run: generate-docker-compose ## create docker-compose.yaml file based on the .env configuration file(s)
 	@echo "Dry Run $(EDGELAKE_TYPE) - $(NODE_NAME)"
 up: ## start AnyLog instance
+	@echo "DEBUG up target: EDGELAKE_TYPE='$(EDGELAKE_TYPE)' NODE_NAME='$(NODE_NAME)'"
 	@echo "Deploy AnyLog $(EDGELAKE_TYPE)"
 ifeq ($(IS_MANUAL),true)
 ifeq ($(REMOTE_CLI),true)
@@ -141,7 +156,7 @@ endif
 ifeq ($(DO_RUN),true)
 	@$(CONTAINER_CMD) run -it --rm --network host \
 		-e INIT_TYPE=prod \
-		-e NODE_TYPE=$(EDGELAKE_TYPE) \
+		-e NODE_TYPE=$(NODE_TYPE) \
 		-e ANYLOG_SERVER_PORT=$(ANYLOG_SERVER_PORT) \
 		-e ANYLOG_REST_PORT=$(ANYLOG_REST_PORT) \
 		-e NODE_NAME=$(NODE_NAME) \
@@ -156,14 +171,14 @@ ifeq ($(DO_RUN),true)
 		-v $(NODE_NAME)-local-scripts:/app/deployment-scripts \
 		$(if $(REMOTE_CLI), -v remote-cli-current:/app/Remote-CLI/djangoProject/static/blobs/current/) \
 		--name $(NODE_NAME) \
-		anylogco/anylog-network:$(TAG)
+		edgelake-mcp:$(TAG)
 else
 	@$(CONTAINER_CMD) run -it --rm \
 		-p $(ANYLOG_SERVER_PORT):$(ANYLOG_SERVER_PORT) \
 		-p $(ANYLOG_REST_PORT):$(ANYLOG_REST_PORT) \
 		$(if $(ANYLOG_BROKER_PORT),-p $(ANYLOG_BROKER_PORT):$(ANYLOG_BROKER_PORT)) \
 		-e INIT_TYPE=prod \
-		-e NODE_TYPE=$(EDGELAKE_TYPE) \
+		-e NODE_TYPE=$(NODE_TYPE) \
 		-e ANYLOG_SERVER_PORT=$(ANYLOG_SERVER_PORT) \
 		-e ANYLOG_REST_PORT=$(ANYLOG_REST_PORT) \
 		-e NODE_NAME=$(NODE_NAME) \
@@ -177,9 +192,10 @@ else
 		-v $(NODE_NAME)-local-scripts:/app/deployment-scripts \
 		$(if $(REMOTE_CLI), -v remote-cli-current:/app/Remote-CLI/djangoProject/static/blobs/current/) \
 		--name $(NODE_NAME) \
-		anylogco/anylog-network:$(TAG)
+		edgelake-mcp:$(TAG)
 endif
 else
+	@echo "DEBUG: About to call generate-docker-compose with EDGELAKE_TYPE='$(EDGELAKE_TYPE)'"
 	@$(MAKE) generate-docker-compose EDGELAKE_TYPE=$(EDGELAKE_TYPE)
 	@$(DOCKER_COMPOSE_CMD) -f docker-makefiles/docker-compose-files/${DOCKER_FILE_NAME} up --build -d
 endif
