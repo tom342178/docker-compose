@@ -91,14 +91,13 @@ SSH_HOST := $(or $(OVERLAY_IP),localhost)
 
 # Base docker-compose command for all operations
 # Export variables so they're available to docker-compose
-# Use absolute path for project-directory to ensure env_file paths work correctly
-COMPOSE := $(DOCKER_SUDO) NODE_NAME=$(NODE_NAME) \
+# Each deployment has its own copy of docker-compose.base.yml for correct path resolution
+COMPOSE := cd $(CURDIR)/$(DEPLOYMENT_DIR) && \
+	$(DOCKER_SUDO) NODE_NAME=$(NODE_NAME) \
 	IMAGE=$(IMAGE) \
 	TAG=$(TAG) \
 	COMPOSE_PROJECT_NAME=$(NODE_NAME) \
-	docker-compose --project-directory $(CURDIR)/$(DEPLOYMENT_DIR) \
-	-f $(CURDIR)/docker-compose.base.yml \
-	-f $(CURDIR)/$(DEPLOYMENT_DIR)/docker-compose.override.yml
+	docker-compose -f docker-compose.base.yml -f docker-compose.override.yml
 
 # ====================
 # PRIMARY TARGETS
