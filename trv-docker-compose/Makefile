@@ -92,12 +92,13 @@ SSH_HOST := $(or $(OVERLAY_IP),localhost)
 # Base docker-compose command for all operations
 # Export variables so they're available to docker-compose
 # Working directory is set by cd command, paths are relative to deployment dir
+# When using sudo, we need to explicitly pass environment variables
 COMPOSE := cd $(DEPLOYMENT_DIR) && \
-	NODE_NAME=$(NODE_NAME) \
+	$(DOCKER_SUDO) NODE_NAME=$(NODE_NAME) \
 	IMAGE=$(IMAGE) \
 	TAG=$(TAG) \
 	COMPOSE_PROJECT_NAME=$(NODE_NAME) \
-	$(DOCKER_SUDO) docker-compose -f ../../docker-compose.base.yml -f docker-compose.override.yml
+	docker-compose -f ../../docker-compose.base.yml -f docker-compose.override.yml
 
 # ====================
 # PRIMARY TARGETS
