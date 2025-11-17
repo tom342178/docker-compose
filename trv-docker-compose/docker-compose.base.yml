@@ -15,13 +15,17 @@ services:
       # Optional: .env.local for machine-specific overrides (should be in .gitignore)
       # - ./.env.local
     volumes:
-      - ${NODE_NAME}-anylog:/app/EdgeLake/anylog
-      - ${NODE_NAME}-blockchain:/app/EdgeLake/blockchain
-      - ${NODE_NAME}-data:/app/EdgeLake/data
-      - ${NODE_NAME}-local-scripts:/app/deployment-scripts
+      - anylog:/app/EdgeLake/anylog
+      - blockchain:/app/EdgeLake/blockchain
+      - data:/app/EdgeLake/data
+      - local-scripts:/app/deployment-scripts
 
 volumes:
-  ${NODE_NAME}-anylog:
-  ${NODE_NAME}-blockchain:
-  ${NODE_NAME}-data:
-  ${NODE_NAME}-local-scripts:
+  anylog:
+    name: ${NODE_NAME}-anylog
+  blockchain:
+    name: ${NODE_NAME}-blockchain
+  data:
+    name: ${NODE_NAME}-data
+  local-scripts:
+    name: ${NODE_NAME}-local-scripts
