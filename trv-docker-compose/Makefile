@@ -84,7 +84,12 @@ SSH_HOST := $(or $(OVERLAY_IP),localhost)
 # ====================
 
 # Base docker-compose command for all operations
-COMPOSE := cd $(DEPLOYMENT_DIR) && docker-compose -f ../../docker-compose.base.yml -f docker-compose.override.yml
+# Export variables so they're available to docker-compose
+COMPOSE := cd $(DEPLOYMENT_DIR) && \
+	NODE_NAME=$(NODE_NAME) \
+	IMAGE=$(IMAGE) \
+	TAG=$(TAG) \
+	docker-compose -f ../../docker-compose.base.yml -f docker-compose.override.yml
 
 # ====================
 # PRIMARY TARGETS
