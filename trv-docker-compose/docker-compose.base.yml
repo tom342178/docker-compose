@@ -1,6 +1,7 @@
 services:
   edgelake:
     image: ${IMAGE}:${TAG}
+    pull_policy: never  # Don't auto-pull, use 'make pull' to get images from registry
     restart: always
     container_name: ${NODE_NAME}
     stdin_open: true
