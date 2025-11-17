@@ -3,7 +3,7 @@
 # Base configuration is inherited from ../../docker-compose.base.yml
 
 services:
-  ${NODE_NAME}:
+  edgelake:
     # Add any query-specific service overrides here
     # Most configuration is handled via env files in ./configs/
     ports: []  # Using network_mode: host, but can add explicit port mappings if needed
