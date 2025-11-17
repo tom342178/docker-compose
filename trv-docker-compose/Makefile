@@ -96,7 +96,7 @@ COMPOSE := cd $(DEPLOYMENT_DIR) && \
 	NODE_NAME=$(NODE_NAME) \
 	IMAGE=$(IMAGE) \
 	TAG=$(TAG) \
-	docker-compose --project-directory . -f ../../docker-compose.base.yml -f docker-compose.override.yml
+	$(DOCKER_SUDO) docker-compose --project-directory . -f ../../docker-compose.base.yml -f docker-compose.override.yml
 
 # ====================
 # PRIMARY TARGETS
