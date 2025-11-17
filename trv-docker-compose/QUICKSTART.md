@@ -1,6 +1,22 @@
 # Quick Start Guide
 
-## TL;DR
+## TL;DR (Using Makefile - Recommended)
+
+```bash
+# Sync deployment to remote host
+make sync operator
+
+# Start deployment (on remote)
+make up operator
+
+# View logs
+make logs operator
+
+# SSH to remote host
+make ssh operator
+```
+
+## TL;DR (Direct Docker Compose)
 
 ```bash
 # Start a deployment
@@ -12,6 +28,17 @@ docker-compose -f ../../docker-compose.base.yml -f docker-compose.override.yml d
 
 # Clean volumes
 docker-compose -f ../../docker-compose.base.yml -f docker-compose.override.yml down -v
+```
+
+## Remote Deployment Workflow
+
+```bash
+# 1. Sync all deployments to their remote hosts
+make sync-all
+
+# 2. SSH to each host and start the deployment
+make ssh operator
+# On remote: cd /home/USER/EdgeLake/docker-compose/trv-docker-compose && make up operator
 ```
 
 ## All Deployments

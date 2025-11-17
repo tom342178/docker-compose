@@ -50,7 +50,13 @@ Environment variables are loaded in the following priority (highest to lowest):
 The easiest way to manage deployments is using the Makefile:
 
 ```bash
-# Start a deployment
+# Sync deployment to remote host (uses OVERLAY_IP from configs)
+make sync operator
+
+# Sync all deployments to their respective remote hosts
+make sync-all
+
+# Start a deployment (on remote host after sync)
 make up master
 
 # View logs
@@ -76,6 +82,25 @@ make ssh operator
 ```
 
 Run `make help` for complete command reference.
+
+### Remote Deployment Workflow
+
+The typical workflow for managing remote deployments:
+
+```bash
+# 1. Sync deployment to remote host
+make sync operator
+
+# 2. SSH to remote host
+make ssh operator
+
+# 3. On the remote host, navigate to the deployment and start it
+cd /home/USER/EdgeLake/docker-compose/trv-docker-compose
+make up operator
+
+# Or do it in one go from local machine:
+make sync operator && ssh USER@HOST "cd /home/USER/EdgeLake/docker-compose/trv-docker-compose && make up operator"
+```
 
 ## Usage (Direct Docker Compose)
 

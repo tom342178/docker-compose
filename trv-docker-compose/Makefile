@@ -26,6 +26,9 @@ DEFAULT_EDGELAKE_TYPE ?= query
 # SSH user for remote connections (can be overridden)
 SSH_USER ?= $(USER)
 
+# Remote deployment path (can be overridden)
+REMOTE_DEPLOY_PATH ?= /home/$(SSH_USER)/EdgeLake/docker-compose
+
 # ====================
 # DEPLOYMENT TYPE PARSING
 # ====================
@@ -100,6 +103,7 @@ help:
 	@echo "  master, operator, operator2, query (default: $(DEFAULT_EDGELAKE_TYPE))"
 	@echo ""
 	@echo "Commands:"
+	@echo "  sync [type]        - Sync deployment to remote host"
 	@echo "  up [type]          - Start deployment"
 	@echo "  down [type]        - Stop deployment"
 	@echo "  restart [type]     - Restart deployment"
@@ -112,6 +116,7 @@ help:
 	@echo "  info [type]        - Show deployment configuration"
 	@echo ""
 	@echo "Batch Commands:"
+	@echo "  sync-all           - Sync all deployments to their remote hosts"
 	@echo "  up-all             - Start all deployments"
 	@echo "  down-all           - Stop all deployments"
 	@echo "  restart-all        - Restart all deployments"
@@ -119,6 +124,7 @@ help:
 	@echo "  status-all         - Show status of all deployments"
 	@echo ""
 	@echo "Examples:"
+	@echo "  make sync operator              - Sync operator to remote host"
 	@echo "  make up master                  - Start master deployment"
 	@echo "  make attach query               - Attach to query node CLI"
 	@echo "  make logs operator              - View operator logs"
@@ -127,6 +133,7 @@ help:
 	@echo "  make info operator              - Show operator configuration"
 	@echo ""
 	@echo "Quick Start:"
+	@echo "  make sync-all                   - Sync all deployments to remote hosts"
 	@echo "  make up-all                     - Start all nodes in order"
 	@echo "  make status-all                 - Check all nodes"
 	@echo "  make down-all                   - Stop all nodes"
@@ -296,7 +303,39 @@ status-all:
 # UTILITY TARGETS
 # ====================
 
-.PHONY: pull rebuild exec
+.PHONY: pull rebuild exec sync sync-all
+
+# Sync deployment to remote host
+sync:
+	@echo "=== Syncing $(EDGELAKE_TYPE) deployment to remote host ==="
+	@echo "Host: $(SSH_HOST)"
+	@echo "User: $(SSH_USER)"
+	@echo "Path: $(REMOTE_DEPLOY_PATH)"
+ifeq ($(SSH_HOST),localhost)
+	@echo "ERROR: OVERLAY_IP not set for $(EDGELAKE_TYPE), cannot sync to remote"
+	@exit 1
+else
+	@echo "Syncing trv-docker-compose directory..."
+	@rsync -avz --delete \
+		--exclude='.git' \
+		--exclude='*.pyc' \
+		--exclude='__pycache__' \
+		--exclude='.env.local' \
+		--exclude='.env.root' \
+		../ $(SSH_USER)@$(SSH_HOST):$(REMOTE_DEPLOY_PATH)/
+	@echo "✓ Sync complete to $(SSH_USER)@$(SSH_HOST):$(REMOTE_DEPLOY_PATH)/"
+endif
+
+# Sync all deployments to their respective hosts
+sync-all:
+	@echo "=== Syncing all deployments to remote hosts ==="
+	@for type in $(DEPLOYMENT_TYPES); do \
+		echo ""; \
+		echo "--- Syncing $$type ---"; \
+		$(MAKE) --no-print-directory sync EDGELAKE_TYPE=$$type || echo "  Skipped (localhost or error)"; \
+	done
+	@echo ""
+	@echo "✓ All syncs complete"
 
 # Pull latest image for deployment
 pull:
