@@ -1,5 +1,5 @@
 services:
-  ${NODE_NAME}:
+  edgelake:
     image: ${IMAGE}:${TAG}
     restart: always
     container_name: ${NODE_NAME}
