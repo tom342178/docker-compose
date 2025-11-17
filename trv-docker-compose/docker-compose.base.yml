@@ -1,0 +1,27 @@
+services:
+  ${NODE_NAME}:
+    image: ${IMAGE}:${TAG}
+    restart: always
+    container_name: ${NODE_NAME}
+    stdin_open: true
+    tty: true
+    network_mode: host
+    env_file:
+      # Config files are loaded in order - later files override earlier ones
+      # Each deployment directory has its own configs/ folder
+      - ./configs/base_configs.env
+      - ./configs/advance_configs.env
+      - ./.env
+      # Optional: .env.local for machine-specific overrides (should be in .gitignore)
+      # - ./.env.local
+    volumes:
+      - ${NODE_NAME}-anylog:/app/EdgeLake/anylog
+      - ${NODE_NAME}-blockchain:/app/EdgeLake/blockchain
+      - ${NODE_NAME}-data:/app/EdgeLake/data
+      - ${NODE_NAME}-local-scripts:/app/deployment-scripts
+
+volumes:
+  ${NODE_NAME}-anylog:
+  ${NODE_NAME}-blockchain:
+  ${NODE_NAME}-data:
+  ${NODE_NAME}-local-scripts:
