@@ -29,6 +29,9 @@ SSH_USER ?= $(USER)
 # Remote deployment path (can be overridden)
 REMOTE_DEPLOY_PATH ?= /home/$(SSH_USER)/EdgeLake/docker-compose
 
+# Docker registry configuration (can be overridden)
+REGISTRY ?= 100.127.19.27:5000
+
 # ====================
 # DEPLOYMENT TYPE PARSING
 # ====================
@@ -110,6 +113,7 @@ help:
 	@echo ""
 	@echo "Commands:"
 	@echo "  sync [type]        - Sync deployment to remote host"
+	@echo "  pull [type]        - Pull image from registry and tag locally"
 	@echo "  up [type]          - Start deployment"
 	@echo "  down [type]        - Stop deployment"
 	@echo "  restart [type]     - Restart deployment"
@@ -131,6 +135,7 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make sync operator              - Sync operator to remote host"
+	@echo "  make pull operator              - Pull operator image from registry"
 	@echo "  make up master                  - Start master deployment"
 	@echo "  make attach query               - Attach to query node CLI"
 	@echo "  make logs operator              - View operator logs"
@@ -343,11 +348,16 @@ sync-all:
 	@echo ""
 	@echo "✓ All syncs complete"
 
-# Pull latest image for deployment
+# Pull latest image for deployment from registry
 pull:
-	@echo "=== Pulling latest image for $(EDGELAKE_TYPE) ==="
+	@echo "=== Pulling image for $(EDGELAKE_TYPE) from registry ==="
+	@echo "Registry: $(REGISTRY)"
 	@echo "Image: $(IMAGE):$(TAG)"
-	@docker pull $(IMAGE):$(TAG)
+	@echo "Pulling $(REGISTRY)/$(IMAGE):$(TAG)..."
+	@docker pull $(REGISTRY)/$(IMAGE):$(TAG)
+	@echo "Tagging as $(IMAGE):$(TAG)..."
+	@docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(IMAGE):$(TAG)
+	@echo "✓ Image pulled and tagged successfully"
 
 # Pull and restart deployment
 rebuild:
