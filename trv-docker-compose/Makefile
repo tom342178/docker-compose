@@ -96,7 +96,6 @@ COMPOSE := cd $(CURDIR)/$(DEPLOYMENT_DIR) && \
 	$(DOCKER_SUDO) NODE_NAME=$(NODE_NAME) \
 	IMAGE=$(IMAGE) \
 	TAG=$(TAG) \
-	COMPOSE_PROJECT_NAME=$(NODE_NAME) \
 	docker-compose -f docker-compose.base.yml -f docker-compose.override.yml
 
 # ====================
