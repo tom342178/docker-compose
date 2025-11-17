@@ -3,7 +3,7 @@
 # Base configuration is inherited from ../../docker-compose.base.yml
 
 services:
-  edgelake:
+  edgelake-master:
     # Add any master-specific service overrides here
     # Most configuration is handled via env files in ./configs/
     ports: []  # Master typically doesn't expose additional ports beyond network_mode: host

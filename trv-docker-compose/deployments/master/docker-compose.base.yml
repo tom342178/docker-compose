@@ -1,5 +1,5 @@
 services:
-  edgelake:
+  edgelake-master:
     image: ${IMAGE}:${TAG}
     pull_policy: never  # Don't auto-pull, use 'make pull' to get images from registry
     restart: always
