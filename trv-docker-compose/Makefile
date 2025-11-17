@@ -32,6 +32,9 @@ REMOTE_DEPLOY_PATH ?= /home/$(SSH_USER)/EdgeLake/docker-compose
 # Docker registry configuration (can be overridden)
 REGISTRY ?= 100.127.19.27:5000
 
+# Use sudo for docker commands if needed (set to empty string if user is in docker group)
+DOCKER_SUDO ?= sudo
+
 # ====================
 # DEPLOYMENT TYPE PARSING
 # ====================
@@ -191,13 +194,13 @@ attach:
 	@echo "=== Attaching to $(EDGELAKE_TYPE) EdgeLake CLI ==="
 	@echo "Node: $(NODE_NAME)"
 	@echo "Use Ctrl-D to detach"
-	@docker attach --detach-keys=ctrl-d $(NODE_NAME)
+	@$(DOCKER_SUDO) docker attach --detach-keys=ctrl-d $(NODE_NAME)
 
 # Connect to container bash shell
 connect:
 	@echo "=== Connecting to $(EDGELAKE_TYPE) container ==="
 	@echo "Node: $(NODE_NAME)"
-	@docker exec -it $(NODE_NAME) bash
+	@$(DOCKER_SUDO) docker exec -it $(NODE_NAME) bash
 
 # SSH to deployment host
 ssh:
@@ -217,7 +220,7 @@ status:
 	@$(COMPOSE) ps
 	@echo ""
 	@echo "Container Details:"
-	@docker ps -a --filter "name=$(NODE_NAME)" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+	@$(DOCKER_SUDO) docker ps -a --filter "name=$(NODE_NAME)" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Show deployment configuration
 info:
@@ -246,7 +249,7 @@ info:
 	@echo "  Deployment Env:            $(DEPLOYMENT_DIR)/.env"
 	@echo ""
 	@echo "Volumes:"
-	@docker volume ls --filter "name=$(NODE_NAME)" --format "  {{.Name}}"
+	@$(DOCKER_SUDO) docker volume ls --filter "name=$(NODE_NAME)" --format "  {{.Name}}"
 
 # ====================
 # BATCH TARGETS (All Deployments)
@@ -354,9 +357,9 @@ pull:
 	@echo "Registry: $(REGISTRY)"
 	@echo "Image: $(IMAGE):$(TAG)"
 	@echo "Pulling $(REGISTRY)/$(IMAGE):$(TAG)..."
-	@docker pull $(REGISTRY)/$(IMAGE):$(TAG)
+	@$(DOCKER_SUDO) docker pull $(REGISTRY)/$(IMAGE):$(TAG)
 	@echo "Tagging as $(IMAGE):$(TAG)..."
-	@docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(IMAGE):$(TAG)
+	@$(DOCKER_SUDO) docker tag $(REGISTRY)/$(IMAGE):$(TAG) $(IMAGE):$(TAG)
 	@echo "✓ Image pulled and tagged successfully"
 
 # Pull and restart deployment
@@ -371,7 +374,7 @@ rebuild:
 exec:
 	@echo "=== Executing in $(NODE_NAME) ==="
 ifdef cmd
-	@docker exec -it $(NODE_NAME) $(cmd)
+	@$(DOCKER_SUDO) docker exec -it $(NODE_NAME) $(cmd)
 else
 	@echo "ERROR: cmd parameter required"
 	@echo "Usage: make exec operator cmd=\"ls -la\""
@@ -392,7 +395,7 @@ list-deployments:
 # List all volumes for a deployment
 list-volumes:
 	@echo "=== Volumes for $(EDGELAKE_TYPE) ($(NODE_NAME)) ==="
-	@docker volume ls --filter "name=$(NODE_NAME)" --format "{{.Name}}\t{{.Driver}}\t{{.Mountpoint}}"
+	@$(DOCKER_SUDO) docker volume ls --filter "name=$(NODE_NAME)" --format "{{.Name}}\t{{.Driver}}\t{{.Mountpoint}}"
 
 # ====================
 # DUMMY TARGETS
